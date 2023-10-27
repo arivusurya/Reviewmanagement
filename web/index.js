@@ -60,6 +60,38 @@ app.get("/api/products/create", async (_req, res) => {
   res.status(status).send({ success: status === 200, error });
 });
 
+app.post("/api/GetProducts", async (req, res) => {
+  let status = 200;
+  let error = null;
+  let queryString = `{
+    products (first: 3) {
+      edges {
+        node {
+          id
+          title
+        }
+      }
+    }
+  }`;
+
+  try {
+    const client = new shopify.api.clients.Graphql({
+      session: res.locals.shopify.session,
+    });
+    let productdetails = await client.query({
+      data: queryString,
+    });
+    return res
+      .status(status)
+      .send({ success: status === 200, error, product: productdetails });
+  } catch (error) {
+    console.log(`Failed to process products/create: ${error.message}`);
+    status = 500;
+    error = error.message;
+    return res.status(status).send({ success: status === 200, error });
+  }
+});
+
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
